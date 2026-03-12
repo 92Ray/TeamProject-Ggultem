@@ -98,5 +98,18 @@ public class ItemBoard extends BaseTimeEntity {
 		this.location = location;
 	}
 	
+	 public void addImage(ItemBoardImage image) {
+			image.setOrd(this.itemList.size());
+			itemList.add(image);
+		}
+
+		public void addImageString(String fileName) {
+			ItemBoardImage image = ItemBoardImage.builder().fileName(fileName).build();
+			addImage(image);
+		}
+	
+	public void clearList() {
+		this.itemList.clear();
+	}
 	
 }

@@ -45,4 +45,12 @@ public class ItemBoardServiceImpl implements ItemBoardService {
 		return itemBoardDTO;
 	}
 
+	@Override
+	public Long register(ItemBoardDTO itemBoardDTO) {
+		ItemBoard itemBoard = modelMapper.map(itemBoardDTO,ItemBoard.class);
+		ItemBoard savedItemBoard = itemBoardRepository.save(itemBoard);
+		
+		return savedItemBoard.getId();
+	}
+
 }
