@@ -44,7 +44,7 @@ public class ChatRoom extends BaseTimeEntity {
 	private String roomName;
 	private String buyerId;
 	private String sellerId;
-	private Integer enabled;
+	private Integer enabled; // 1:활성화, 0:삭제
 	
 	@ElementCollection(fetch = FetchType.LAZY)
 	@Column(name = "chat_messages")

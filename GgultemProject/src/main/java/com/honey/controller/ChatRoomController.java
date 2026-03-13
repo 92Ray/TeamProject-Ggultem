@@ -2,6 +2,7 @@ package com.honey.controller;
 
 import java.util.Map;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,8 +35,8 @@ public class ChatRoomController {
 	
 	@PostMapping("/")
 	public Map<String, Long> register(@RequestBody ChatRoomDTO chatRoomDTO) {
-		Long no = service.register(chatRoomDTO);
-		return Map.of("NO", no);
+		Long roomId = service.register(chatRoomDTO);
+		return Map.of("roomId", roomId);
 	}
 	
 	@GetMapping("/list")
@@ -50,7 +51,7 @@ public class ChatRoomController {
 		return Map.of("RESULT", "SUCCESS");
 	}
 	
-	@PutMapping("/remove/{roomId}")
+	@DeleteMapping("/remove/{roomId}")
 	public Map<String, String> remove(@PathVariable(name = "roomId") Long roomId) {
 		service.remove(roomId);
 		return Map.of("RESULT", "SUCCESS");

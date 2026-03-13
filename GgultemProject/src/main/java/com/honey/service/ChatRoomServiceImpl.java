@@ -47,16 +47,14 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 		
 		chatRoom.changeEnabled(1);
 		
-		ChatRoom savedChatRoom = repository.save(chatRoom);
-		
-		return savedChatRoom.getRoomId();
+		return repository.save(chatRoom).getRoomId();
 	}
 
 	@Override
 	public PageResponseDTO<ChatRoomDTO> list(PageRequestDTO pageRequestDTO) {
 		Pageable pageable = PageRequest.of(pageRequestDTO.getPage() - 1, // 1 페이지가 0 이므로 주의
-				pageRequestDTO.getSize(), Sort.by("no").descending());
-		Page<ChatRoom> result = repository.findAll(pageable);
+				pageRequestDTO.getSize(), Sort.by("roomId").descending());
+		Page<ChatRoom> result = repository.findAllByEnabled(pageable);
 		
 		List<ChatRoomDTO> dtoList = result.getContent().stream().map(chatRoom -> {
 			ChatRoomDTO dto = modelMapper.map(chatRoom, ChatRoomDTO.class);
@@ -85,6 +83,8 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 	public void remove(Long roomId) {
 		Optional<ChatRoom> result = repository.findById(roomId);
 		ChatRoom chatRoom = result.orElseThrow();
+		
+		chatRoom.changeEnabled(0);
 
 		repository.save(chatRoom);
 	}
