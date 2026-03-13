@@ -2,6 +2,7 @@ package com.honey.controller;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
@@ -37,27 +38,46 @@ public class MypageController {
     }
     
     @PutMapping("/{no}")
-    public Map<String, String> putMethodName(@PathVariable(name = "no") Long no, MemberDTO memberDTO) {
+    public Map<String, String> modify(@PathVariable(name = "no") Long no, MemberDTO memberDTO) {
         service.modify(memberDTO);
     	return Map.of("RESULT", "SUCCESS");
     }
     
-    @PutMapping("delete/{no}")
-    public Map<String, String> putMethodName(@PathVariable(name = "no") Long no) {
+    @PutMapping("remove/{no}")
+    public Map<String, String> remove(@PathVariable(name = "no") Long no) {
         service.remove(no);
         return Map.of("RESULT", "SUCCESS");
     }
 
-    @PostMapping("/thumbnail/{no}")
+    @PutMapping("/thumbnail/{no}")
     public Map<String, String> updateMyThumbnail(@PathVariable(name="no") Long no, MemberDTO memberDTO) {
+    	memberDTO.setNo(no);
+    	MemberDTO oldMemberDTO = service.get(no);
+    	
+    	List<String> oldFileNames = oldMemberDTO.getUploadFileNames();
         
         List<MultipartFile> files = memberDTO.getFiles();
-        List<String> uploadFileNames = fileUtil.saveFiles(files);
+        
+        List<String> currentUploadFileNames = null;
+        if(files != null && !files.get(0).isEmpty()) {
+        	currentUploadFileNames = fileUtil.saveFiles(files);
+        }
+        
+        List<String> uploadFileNames = memberDTO.getUploadFileNames();
+        
+        if(currentUploadFileNames != null && !currentUploadFileNames.isEmpty()) {
+        	uploadFileNames.addAll(currentUploadFileNames);
+        }
 
-        memberDTO.setNo(no);
         memberDTO.setUploadFileNames(uploadFileNames);
         
         service.updateToThumbnail(memberDTO); 
+        
+        if(oldFileNames != null && !oldFileNames.isEmpty()) {
+        	List<String> removeFiles = oldFileNames.stream().filter(fileName ->
+        			uploadFileNames.indexOf(fileName) == -1).collect(Collectors.toList());
+        fileUtil.deleteFiles(removeFiles);
+        }
 
         return Map.of("RESULT", "SUCCESS", "FILE_NAMES", uploadFileNames.toString());
     }

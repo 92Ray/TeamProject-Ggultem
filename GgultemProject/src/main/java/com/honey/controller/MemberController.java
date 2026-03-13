@@ -42,7 +42,6 @@ public class MemberController {
 	
 	@GetMapping("/list")
 	public PageResponseDTO<MemberDTO> list(PageRequestDTO pageRequestDTO) {
-		log.info(pageRequestDTO);
 		return service.list(pageRequestDTO);
 	}
 	
@@ -53,7 +52,7 @@ public class MemberController {
 		return Map.of("RESULT", "SUCCESS");
 	}
 
-	@PutMapping("/delete/{no}")
+	@PutMapping("/remove/{no}")
 	public Map<String, String> remove(@PathVariable(name = "no") Long no) {
 		service.remove(no);
 		return Map.of("RESULT", "SUCCESS");
