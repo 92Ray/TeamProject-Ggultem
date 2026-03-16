@@ -15,14 +15,14 @@ public interface CartRepository extends JpaRepository<Cart, Long> {
 	Page<Cart> findAllList(Pageable pageable);
 
 	@EntityGraph(attributePaths = { "itemBoard", "itemBoard.itemList" })
-	@Query("SELECT c FROM Cart c JOIN c.itemBoard i " + "WHERE c.member.no = :no " + // 1. 회원 체크를 가장 먼저 (보안 및 성능)
+	@Query("SELECT c FROM Cart c JOIN c.itemBoard i " + "WHERE c.member.no = :no " + 
 			"AND ( " + // 2. 검색 조건 시작
 			"  (:searchType = 'title' AND i.title LIKE %:keyword%) OR "
 			+ "  (:searchType = 'writer' AND i.writer LIKE %:keyword%) OR "
 			+ "  (:searchType = 'content' AND i.content LIKE %:keyword%) OR "
 			+ "  (:searchType = 'category' AND i.category LIKE %:keyword%) OR "
 			+ "  (:searchType = 'location' AND i.location LIKE %:keyword%) OR "
-			+ "  ((:searchType = 'all' OR :searchType IS NULL OR :searchType = '') AND " + // 전체검색 및 기본검색 통합
+			+ "  ((:searchType = 'all' OR :searchType IS NULL OR :searchType = '') AND " + 
 			"   (i.title LIKE %:keyword% OR i.writer LIKE %:keyword% OR i.content LIKE %:keyword% OR i.category LIKE %:keyword% OR i.location LIKE %:keyword%)) "
 			+ ")") // 3. 검색 조건 끝
 	Page<Cart> searchByCondition(@Param("searchType") String searchType, @Param("keyword") String keyword,Pageable pageable,
