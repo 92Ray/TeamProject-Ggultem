@@ -76,7 +76,7 @@ public class Member extends BaseTimeEntity {
 	private List<MemberThumbnail> thumbnailList = new ArrayList<>(); 
 
     public void addRole(String role) {
-        if (this.authSet == null) {
+    	if (this.authSet == null) {
             this.authSet = new HashSet<>();
         }
         this.authSet.add(role);
