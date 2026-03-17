@@ -12,7 +12,7 @@ import com.honey.domain.Cart;
 public interface CartRepository extends JpaRepository<Cart, Long> {
 
 	@Query("select c from Cart c") 
-	Page<Cart> findAllList(Pageable pageable);
+	Page<Cart> findAllList(Pageable pageable, String memberEmail);
 
 	@EntityGraph(attributePaths = { "itemBoard", "itemBoard.itemList" })
 	@Query("SELECT c FROM Cart c JOIN c.itemBoard i " + "WHERE c.member.email = :email " + 
@@ -26,5 +26,5 @@ public interface CartRepository extends JpaRepository<Cart, Long> {
 			"   (i.title LIKE %:keyword% OR i.writer LIKE %:keyword% OR i.content LIKE %:keyword% OR i.category LIKE %:keyword% OR i.location LIKE %:keyword%)) "
 			+ ")") 
 	Page<Cart> searchByCondition(@Param("searchType") String searchType, @Param("keyword") String keyword,Pageable pageable,
-			@Param("email") Long mamberEmail);
+			@Param("email") String mamberEmail);
 }

@@ -104,6 +104,10 @@ public class ItemBoard extends BaseTimeEntity {
 	public void chanceViewCount(int viewCount) {
 		this.viewCount = viewCount;
 	}
+	
+	public void changePictureUrl(String pictureUrl) {
+		this.pictureUrl = pictureUrl;
+	}
 
 	public void addImage(ItemBoardImage image) {
 		// ModelMapper 등으로 인해 itemList가 null이 된 경우를 대비해 직접 초기화
