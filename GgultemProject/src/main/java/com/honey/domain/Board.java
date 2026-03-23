@@ -42,6 +42,8 @@ public class Board extends BaseTimeEntity {
 
 	private String title;
 	private String writer;
+	
+	@Column(columnDefinition = "CLOB")
 	private String content;
 	private int viewCount;
 	

@@ -5,7 +5,15 @@ import java.util.Map;
 
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.honey.dto.BoardDTO;
 import com.honey.dto.PageResponseDTO;
@@ -41,16 +49,14 @@ public class BoardController {
 
 		log.info("Board register: " + boardDTO);
 
-		// 파일 저장
-		List<String> fileNames = fileUtil.saveFiles(boardDTO.getFiles());
-
-		if (boardDTO.getFiles() != null && !boardDTO.getFiles().isEmpty()) {
-			fileNames = fileUtil.saveFiles(boardDTO.getFiles());
-		}
-
-		// DTO에 파일명 세팅
-		boardDTO.setUploadFileNames(fileNames);
-
+		/*
+		 * // 파일 저장 List<String> fileNames = fileUtil.saveFiles(boardDTO.getFiles());
+		 * 
+		 * if (boardDTO.getFiles() != null && !boardDTO.getFiles().isEmpty()) {
+		 * fileNames = fileUtil.saveFiles(boardDTO.getFiles()); }
+		 * 
+		 * // DTO에 파일명 세팅 boardDTO.setUploadFileNames(fileNames);
+		 */
 		Integer boardNo = service.register(boardDTO);
 
 		return Map.of("BOARD_NO", boardNo);
@@ -120,5 +126,19 @@ public class BoardController {
 	@GetMapping("/view/{fileName}")
 	public ResponseEntity<Resource> viewFileGET(@PathVariable String fileName) {
 		return fileUtil.getFile(fileName);
+	}
+
+	// 파일업로드
+	@CrossOrigin(origins = "http://localhost:5173")
+	@PostMapping("/upload")
+	public Map<String, String> upload(@RequestParam("file") MultipartFile file) {
+
+		List<MultipartFile> files = List.of(file);
+
+		List<String> saved = fileUtil.saveFiles(files);
+
+		String fileName = saved.get(0);
+
+		return Map.of("url", "http://localhost:8080/board/view/" + fileName);
 	}
 }
