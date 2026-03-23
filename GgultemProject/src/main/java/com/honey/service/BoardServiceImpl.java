@@ -77,13 +77,20 @@ public class BoardServiceImpl implements BoardService {
 	@Override
 	public void modify(BoardDTO boardDTO) {
 
-	    Board board = boardRepository.findById(boardDTO.getBoardNo()).orElseThrow();
+	    Board board = boardRepository.findById(boardDTO.getBoardNo())
+	            .orElseThrow();
 
-	    board.changeTitle(boardDTO.getTitle());
-	    board.changeWriter(boardDTO.getWriter());
+	    //  제목 (null 방어)
+	    if (boardDTO.getTitle() != null && !boardDTO.getTitle().isEmpty()) {
+	        board.changeTitle(boardDTO.getTitle());
+	    }
 
-	    // board.clearList();
-	    // uploadFileNames 관련 코드 삭제
+	    //  내용 
+	    if (boardDTO.getContent() != null && !boardDTO.getContent().isEmpty()) {
+	        board.setContent(boardDTO.getContent());
+	    }
+
+	   
 
 	    boardRepository.save(board);
 	}

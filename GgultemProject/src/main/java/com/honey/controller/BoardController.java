@@ -133,12 +133,13 @@ public class BoardController {
 	@PostMapping("/upload")
 	public Map<String, String> upload(@RequestParam("file") MultipartFile file) {
 
-		List<MultipartFile> files = List.of(file);
+	    System.out.println("🔥 파일명: " + file.getOriginalFilename());
+	    System.out.println("🔥 사이즈: " + file.getSize());
 
-		List<String> saved = fileUtil.saveFiles(files);
+	    List<String> saved = fileUtil.saveFiles(List.of(file));
 
-		String fileName = saved.get(0);
+	    String fileName = saved.get(0);
 
-		return Map.of("url", "http://localhost:8080/board/view/" + fileName);
+	    return Map.of("url", "http://localhost:8080/board/view/" + fileName);
 	}
 }
