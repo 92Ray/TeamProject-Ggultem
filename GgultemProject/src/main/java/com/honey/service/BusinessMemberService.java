@@ -11,10 +11,14 @@ public interface BusinessMemberService {
 
 	public void memberBusinessRegister(MemberDTO MemberDTO);
 
-	public void approve(BusinessMemberDTO bMemberDTO);
+	public void approve(String email);
+	
+	public void reject(String email);
 
 	public void modify(BusinessMemberDTO bMemberDTO);
 
 	public boolean verifyBusinessNumber(String cleanBNo);
+
+	public MemberDTO get(String email);
 
 }
