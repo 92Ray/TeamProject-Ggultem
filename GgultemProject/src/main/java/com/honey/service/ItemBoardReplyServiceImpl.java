@@ -73,4 +73,20 @@ public class ItemBoardReplyServiceImpl implements ItemBoardReplyService {
 		return reply.getReplyNo();
 	}
 
+	@Override
+	public void modify(ItemBoardReplyDTO dto) {
+
+		ItemBoardReply reply = itemBoardReplyRepository.findById(dto.getReplyNo()).orElseThrow();
+
+		reply.changeContent(dto.getContent());
+	}
+
+	@Override
+	public void remove(Long replyNo) {
+
+		ItemBoardReply reply = itemBoardReplyRepository.findById(replyNo).orElseThrow();
+
+		reply.changeEnabled(0);
+	}
+
 }

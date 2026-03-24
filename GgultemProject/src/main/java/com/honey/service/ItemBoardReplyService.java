@@ -10,4 +10,8 @@ public interface ItemBoardReplyService {
 
 	public Long register(ItemBoardReplyDTO dto);
 
+	public void modify(ItemBoardReplyDTO dto);
+
+	public void remove(Long replyNo);
+
 }
