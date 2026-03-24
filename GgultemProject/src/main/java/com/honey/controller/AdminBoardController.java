@@ -1,5 +1,7 @@
 package com.honey.controller;
 
+import java.util.Map;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,9 +37,15 @@ public class AdminBoardController {
 
 	// 게시글 강제 삭제
 	@PutMapping("/{boardNo}")
-	public void adminRemove(@PathVariable Integer boardNo) {
-		boardService.remove(boardNo);
+	public Map<String, String> adminRemove(@PathVariable Integer boardNo) {
+	    boardService.adminRemove(boardNo);
+	    return Map.of("result", "success");
 	}
 
-	
+	// 댓글 삭제
+	@PutMapping("/reply/{replyNo}")
+	public Map<String, String> adminRemoveReply(@PathVariable Long replyNo) {
+	    boardService.removeReply(replyNo);
+	    return Map.of("result", "success");
+	}
 }
