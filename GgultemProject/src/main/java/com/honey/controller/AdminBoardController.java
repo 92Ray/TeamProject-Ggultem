@@ -34,10 +34,6 @@ public class AdminBoardController {
 		return boardService.get(boardNo);
 	}
 	
-	@GetMapping("/reply/list")
-	public PageResponseDTO<?> replyList(SearchDTO searchDTO) {
-	    return boardService.adminReplyList(searchDTO);
-	}
 
 	// 게시글 강제 삭제
 	@PutMapping("/{boardNo}")
@@ -46,10 +42,5 @@ public class AdminBoardController {
 	    return Map.of("result", "success");
 	}
 
-	// 댓글 삭제
-	@PutMapping("/reply/{replyNo}")
-	public Map<String, String> adminRemoveReply(@PathVariable Long replyNo) {
-	    boardService.removeReply(replyNo);
-	    return Map.of("result", "success");
-	}
+	
 }
