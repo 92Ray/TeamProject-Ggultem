@@ -35,7 +35,7 @@ public interface ItemBoardRepository extends JpaRepository<ItemBoard, Long> {
 	@EntityGraph(attributePaths = { "itemList" })
 	@Query("""
 			SELECT i FROM ItemBoard i
-			WHERE i.enabled = 1
+			WHERE i.enabled > 0
 
 			AND (:status = 'all' OR i.status = :status)
 			AND (:category = 'all' OR i.category = :category)
