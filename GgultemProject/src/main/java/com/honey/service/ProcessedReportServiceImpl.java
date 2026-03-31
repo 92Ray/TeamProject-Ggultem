@@ -22,91 +22,102 @@ import com.honey.repository.ProcessedReportRepository;
 import com.honey.repository.ReportRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 @Service
 @Transactional
 @RequiredArgsConstructor
 public class ProcessedReportServiceImpl implements ProcessedReportService {
+    private final ProcessedReportRepository processedRepository;
+    private final ReportRepository reportRepository;
+    private final MemberRepository memberRepository;
 
-	private final ProcessedReportRepository processedRepository;
-	private final ReportRepository reportRepository;
-	private final MemberRepository memberRepository;
-	
-	// ⭐ ReportService 주입 (이 이름이 정확해야 빨간 줄이 사라집니다)
-	private final ReportService reportService;
+    @Override
+    public Long process(ProcessedReportDTO dto) {
+        Report report = reportRepository.findById(dto.getReportId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 신고 내역입니다."));
 
-	@Override
-	public Long process(ProcessedReportDTO dto) {
-		Report report = reportRepository.findById(dto.getReportId())
-				.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 신고 내역입니다."));
+        // ✅ 피신고자가 없어도 예외 대신 경고 로그만 남기고 계속 진행
+        Member targetMember = memberRepository.findById(report.getTargetMemberId())
+                .orElse(null);
 
-		Member targetMember = memberRepository.findById(report.getTargetMemberId())
-				.orElseThrow(() -> new IllegalArgumentException("피신고자를 찾을 수 없습니다."));
+        if (targetMember == null) {
+            log.warn("피신고자({})를 찾을 수 없어 정지 처리를 건너뜁니다.", report.getTargetMemberId());
+        } else if (dto.getMemberStatus() != null) {
+            targetMember.changeStatus(dto.getMemberStatus());
+        }
+        
+        memberRepository.save(targetMember);
 
-		Member admin = Member.builder().email(dto.getAdminEmail()).build();
+        Member admin = Member.builder().email(dto.getAdminEmail()).build();
 
-		if (dto.getMemberStatus() != null) {
-			targetMember.changeStatus(dto.getMemberStatus());
-		}
+        ProcessedReport processed = ProcessedReport.builder()
+                .report(report)
+                .admin(admin)
+                .actionNote(dto.getActionNote())
+                .reportStatus(dto.getReportStatus())
+                .build();
 
-		ProcessedReport processed = ProcessedReport.builder()
-				.report(report)
-				.admin(admin)
-				.actionNote(dto.getActionNote())
-				.reportStatus(dto.getReportStatus()) 
-				.build();
-		
-		processedRepository.save(processed);
-		report.changeStatus(1);
+        processedRepository.save(processed);
+        report.changeStatus(1);
+        return processed.getProcessedReportId();
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponseDTO<ReportDTO> list(PageRequestDTO pageRequestDTO) {
+        Pageable pageable = PageRequest.of(
+                pageRequestDTO.getPage() - 1,
+                pageRequestDTO.getSize(),
+                Sort.by("reportId").descending()
+        );
+        Page<Report> result = reportRepository.findAll(pageable);
+        List<ReportDTO> dtoList = result.getContent().stream()
+                .map(report -> ReportDTO.builder()
+                        .reportId(report.getReportId())
+                        .targetMemberId(report.getTargetMemberId())
+                        .targetType(report.getTargetType())
+                        .reportType(report.getReportType())
+                        .reason(report.getReason())
+                        .status(report.getStatus())
+                        .targetNo(report.getTargetNo())
+                        .regDate(report.getRegDate()) // BaseTimeEntity 필드명 확인
+                        .build())
+                .collect(Collectors.toList());
+        return PageResponseDTO.<ReportDTO>withAll()
+                .dtoList(dtoList)
+                .pageRequestDTO(pageRequestDTO)
+                .totalCount(result.getTotalElements())
+                .build();
+    }
 
-		return processed.getProcessedReportId();
-	}
+    @Override
+    @Transactional(readOnly = true)
+    public ReportDTO getOne(Long reportId) {
+        Report report = reportRepository.findById(reportId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 신고입니다."));
+        return ReportDTO.builder()
+                .reportId(report.getReportId())
+                .targetMemberId(report.getTargetMemberId())
+                .targetType(report.getTargetType())
+                .reportType(report.getReportType())
+                .reason(report.getReason())
+                .status(report.getStatus())
+                .targetNo(report.getTargetNo())
+                .regDate(report.getRegDate()) // BaseTimeEntity 필드명 확인
+                .build();
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public ProcessedReportDTO getOneProcessed(Long reportId) {
+        ProcessedReport processed = processedRepository.findByReport_ReportId(reportId)
+                .orElseThrow(() -> new IllegalArgumentException("처리 내역이 존재하지 않습니다."));
 
-	@Override
-	public PageResponseDTO<ProcessedReportDTO> getAdminList(PageRequestDTO pageRequestDTO) {
-		
-		Pageable pageable = PageRequest.of(
-				pageRequestDTO.getPage() - 1,
-				pageRequestDTO.getSize(),
-				Sort.by("reportId").descending()
-		);
-
-		Page<Report> result = reportRepository.findAll(pageable);
-
-		List<ProcessedReportDTO> dtoList = result.getContent().stream().map(report -> {
-			// ⭐ 여기서 ReportDTO 타입을 확실히 명시해줍니다.
-			ReportDTO reportDTO = reportService.read(report.getReportId());
-
-			return ProcessedReportDTO.builder()
-					.reportId(report.getReportId())
-					.reportDTO(reportDTO) 
-					.reportStatus(report.getStatus() == 1 ? "처리완료" : "접수")
-					.build();
-		}).collect(Collectors.toList());
-
-		return PageResponseDTO.<ProcessedReportDTO>withAll()
-				.dtoList(dtoList)
-				.pageRequestDTO(pageRequestDTO)
-				.totalCount(result.getTotalElements())
-				.build();
-	}
-
-	@Override
-	public ProcessedReportDTO getRead(Long reportId) {
-		
-		// 1. 신고 원문 정보 가져오기 (ReportService 활용)
-		// ⭐ image_934572.jpg의 에러를 잡기 위해 리턴 타입을 명시합니다.
-		ReportDTO reportDTO = reportService.read(reportId);
-
-		// 2. 관리자 처리 내역이 있는지 확인
-		ProcessedReport processed = processedRepository.findByReport_ReportId(reportId).orElse(null);
-
-		return ProcessedReportDTO.builder()
-				.reportId(reportId)
-				.reportDTO(reportDTO)
-				.actionNote(processed != null ? processed.getActionNote() : "")
-				.adminEmail(processed != null && processed.getAdmin() != null ? processed.getAdmin().getEmail() : "")
-				.reportStatus(reportDTO.getStatus() == 1 ? "처리완료" : "접수")
-				.build();
-	}
+        return ProcessedReportDTO.builder()
+                .reportId(processed.getReport().getReportId())
+                .adminEmail(processed.getAdmin().getEmail())
+                .actionNote(processed.getActionNote())
+                .reportStatus(processed.getReportStatus())
+                .build();
+    }
 }
