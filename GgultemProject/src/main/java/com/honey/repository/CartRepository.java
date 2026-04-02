@@ -11,12 +11,18 @@ import com.honey.domain.Cart;
 
 public interface CartRepository extends JpaRepository<Cart, Long> {
 
+	// 리스트에서 장바구니 삭제(상품아이디, 사용자이메일)
+	void deleteByItemBoardIdAndMemberEmail(Long itemId, String email);
+
+	@Query("SELECT COUNT(c) > 0 FROM Cart c WHERE c.itemBoard.id = :itemId AND c.member.email = :email AND c.enabled = 1")
+    boolean existsByItemBoardIdAndMemberEmail(@Param("itemId") Long itemId, @Param("email") String email);
+	
 	@Query("select c from Cart c")
 	Page<Cart> findAllList(Pageable pageable, String memberEmail);
 
 	@EntityGraph(attributePaths = { "itemBoard", "itemBoard.itemList" })
-	@Query("SELECT c FROM Cart c JOIN c.itemBoard i " + "WHERE c.member.email = :email " + "AND ("
-			+ "  (:searchType = 'title' AND i.title LIKE %:keyword%) OR "
+	@Query("SELECT c FROM Cart c JOIN c.itemBoard i " + "WHERE c.member.email = :email " + "AND c.enabled = 1 "
+			+ "AND (" + "  (:searchType = 'title' AND i.title LIKE %:keyword%) OR "
 			+ "  (:searchType = 'writer' AND i.writer LIKE %:keyword%) OR "
 			+ "  (:searchType = 'content' AND i.content LIKE %:keyword%) OR "
 			+ "  (:searchType = 'category' AND i.category LIKE %:keyword%) OR "

@@ -34,6 +34,12 @@ public class ItemBoardDTO {
 	private String pictureUrl;
 	private Integer enabled;
 	private Integer viewCount;
+	// 별표 체크 유지
+	private boolean isFavorite;
+
+	// 주소(위도,경도)
+	private Double lat;
+	private Double lng;
 
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
 	private LocalDateTime regDate;
